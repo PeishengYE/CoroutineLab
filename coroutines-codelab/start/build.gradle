@@ -48,6 +48,9 @@ apply plugin: 'kotlin-kapt'
 
 android {
     compileSdkVersion 29
+    buildFeatures {
+        dataBinding true
+    }
     defaultConfig {
         applicationId "com.example.android.kotlincoroutines"
         minSdkVersion 19
@@ -69,6 +72,7 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+
 }
 
 dependencies {
