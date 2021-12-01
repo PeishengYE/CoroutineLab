@@ -1,2 +1,3 @@
 */.idea
 .gradle
+/coroutines-codelab/start/.idea/

@@ -16,6 +16,7 @@
 
 package com.example.android.kotlincoroutines.main
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
 import com.example.android.kotlincoroutines.util.BACKGROUND
@@ -28,6 +29,7 @@ import com.example.android.kotlincoroutines.util.BACKGROUND
  * when data is updated. You can consider repositories to be mediators between different data
  * sources, in our case it mediates between a network API and an offline database cache.
  */
+const val TAG = "TitleRepository"
 class TitleRepository(val network: MainNetwork, val titleDao: TitleDao) {
 
     /**
@@ -54,8 +56,10 @@ class TitleRepository(val network: MainNetwork, val titleDao: TitleDao) {
         // This request will be run on a background thread by retrofit
         BACKGROUND.submit {
             try {
+                Log.v(TAG, "fetchNextTitle()>> 1")
                 // Make network request using a blocking call
                 val result = network.fetchNextTitle().execute()
+                Log.v(TAG, "fetchNextTitle()>> 2")
                 if (result.isSuccessful) {
                     // Save it to database
                     titleDao.insertTitle(Title(result.body()!!))
@@ -70,6 +74,7 @@ class TitleRepository(val network: MainNetwork, val titleDao: TitleDao) {
                 // If anything throws an exception, inform the caller
                 titleRefreshCallback.onError(
                         TitleRefreshError("Unable to refresh title", cause))
+                Log.v(TAG, "refreshTitleWithCallbacks()>> with error: " + cause)
             }
         }
     }

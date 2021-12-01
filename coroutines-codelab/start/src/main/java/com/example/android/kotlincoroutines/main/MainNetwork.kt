@@ -25,12 +25,12 @@ import retrofit2.http.GET
 
 private val service: MainNetwork by lazy {
     val okHttpClient = OkHttpClient.Builder()
-            .addInterceptor(SkipNetworkInterceptor())
+//            .addInterceptor(SkipNetworkInterceptor())
             .build()
 
     val retrofit = Retrofit.Builder()
-            .baseUrl("http://localhost/")
-            .client(okHttpClient)
+            .baseUrl("http://172.16.18.211:8080/")
+            //.client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
@@ -43,7 +43,7 @@ fun getNetworkService() = service
  * Main network interface which will fetch a new welcome title for us
  */
 interface MainNetwork {
-    @GET("next_title.json")
+    @GET("getJson")
     fun fetchNextTitle(): Call<String>
 }
 
