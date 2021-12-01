@@ -58,6 +58,7 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
     }
     buildTypes {
         release {
@@ -83,6 +84,10 @@ dependencies {
 
     testImplementation testLibraries
     androidTestImplementation androidTestLibraries
+    implementation "com.github.bumptech.glide:glide:$version_glide"
+    // Core with Ktx
+    implementation "androidx.core:core-ktx:$version_core"
+    implementation 'com.android.support:multidex:1.0.3'
 }
 
 buildscript {
