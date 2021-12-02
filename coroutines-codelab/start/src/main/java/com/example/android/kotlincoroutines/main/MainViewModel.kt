@@ -36,7 +36,8 @@ import kotlinx.coroutines.launch
  */
 
 const val URL_SCREENSHOT = "http://172.16.18.211:8080/image/"
-const val URL_BLUE = "http://172.16.18.211:8080/image/"
+const val URL_BLUE = "http://172.16.18.211:8080/blue/"
+const val URL_RED = "http://172.16.18.211:8080/red/"
 class MainViewModel(private val repository: TitleRepository) : ViewModel() {
 
     companion object {
@@ -134,10 +135,15 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
             // resume in the main dispatcher
             // _snackbar.value can be called directly from main thread
             _taps.postValue("$tapCount taps")
+            when (tapCount){
+                0-> _imageUrl.postValue(URL_RED)
+                1-> _imageUrl.postValue(URL_BLUE)
+                2-> _imageUrl.postValue(URL_SCREENSHOT)
+            }
             if(tapCount > 3 ){
-                Log.v("MainViewModel", "updateTaps()>> imageUrl with " + URL_SCREENSHOT)
+
                 tapCount = 0
-                _imageUrl.postValue(URL_SCREENSHOT)
+
             }
         }
     }
