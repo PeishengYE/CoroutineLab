@@ -1,5 +1,6 @@
-package com.example.android.kotlincoroutines.main
+package com.example.android.kotlincoroutines
 
+import android.util.Log
 import android.widget.ImageView
 import com.example.android.kotlincoroutines.R
 import androidx.databinding.BindingAdapter
@@ -13,7 +14,8 @@ import com.bumptech.glide.request.RequestOptions
 @BindingAdapter("imageUrl")
 fun bindImage(imgView: ImageView, imgUrl: String?) {
     imgUrl?.let {
-        val imgUri = imgUrl.toUri().buildUpon().scheme("https").build()
+        val imgUri = imgUrl.toUri().buildUpon().scheme("http").build()
+        Log.v("BindingAdapter", "bindImage()>> started with Glide with URL: " + it)
         Glide.with(imgView.context)
                 .load(imgUri)
                 .apply(RequestOptions()

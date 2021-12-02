@@ -22,10 +22,13 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProviders
 import androidx.lifecycle.observe
 import com.example.android.kotlincoroutines.R
+import com.example.android.kotlincoroutines.databinding.ActivityMainBinding
 import com.google.android.material.snackbar.Snackbar
+
 
 /**
  * Show layout.activity_main and setup data binding.
@@ -38,7 +41,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setContentView(R.layout.activity_main)
+        val binding: ActivityMainBinding = ActivityMainBinding.inflate(layoutInflater)
+
+        setContentView(binding.root)
+        DataBindingUtil.setContentView<ActivityMainBinding>(this, R.layout.activity_main)
 
         val rootLayout: ConstraintLayout = findViewById(R.id.rootLayout)
         val title: TextView = findViewById(R.id.title)

@@ -16,6 +16,7 @@
 
 package com.example.android.kotlincoroutines.main
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -33,6 +34,8 @@ import kotlinx.coroutines.launch
  *
  * @param repository the data source this ViewModel will fetch results from.
  */
+
+const val URL_SCREENSHOT = "http://172.16.18.211:8080/image/"
 class MainViewModel(private val repository: TitleRepository) : ViewModel() {
 
     companion object {
@@ -89,6 +92,21 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
     val taps: LiveData<String>
         get() = _taps
 
+
+
+    /**
+     * LiveData with formatted tap count.
+     */
+    private val _imageUrl = MutableLiveData<String>()
+
+    /**
+     * Public view of tap live data.
+     */
+    val imageUrl: LiveData<String>
+        get() = _imageUrl
+
+
+
     /**
      * Respond to onClick events by refreshing the title.
      *
@@ -115,6 +133,11 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
             // resume in the main dispatcher
             // _snackbar.value can be called directly from main thread
             _taps.postValue("$tapCount taps")
+            if(tapCount > 3 ){
+                Log.v("MainViewModel", "updateTaps()>> imageUrl with " + URL_SCREENSHOT)
+                tapCount = 0
+                _imageUrl.postValue(URL_SCREENSHOT)
+            }
         }
     }
 

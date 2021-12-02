@@ -39,6 +39,7 @@ buildscript {
         def truth_version = '1.0'
         def room_version = '2.2.2'
         def work_version = '2.2.0'
+        version_glide = "4.8.0"
 
         libraries = [
                 // Kotlin standard library
