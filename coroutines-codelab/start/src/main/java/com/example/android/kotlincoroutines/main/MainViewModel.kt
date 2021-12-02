@@ -36,6 +36,7 @@ import kotlinx.coroutines.launch
  */
 
 const val URL_SCREENSHOT = "http://172.16.18.211:8080/image/"
+const val URL_BLUE = "http://172.16.18.211:8080/image/"
 class MainViewModel(private val repository: TitleRepository) : ViewModel() {
 
     companion object {

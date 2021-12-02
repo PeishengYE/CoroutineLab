@@ -41,11 +41,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val binding: ActivityMainBinding = ActivityMainBinding.inflate(layoutInflater)
 
-        setContentView(binding.root)
-        DataBindingUtil.setContentView<ActivityMainBinding>(this, R.layout.activity_main)
-
+        val binding =
+                DataBindingUtil.setContentView<ActivityMainBinding>(this, R.layout.activity_main)
+        binding.lifecycleOwner = this
         val rootLayout: ConstraintLayout = findViewById(R.id.rootLayout)
         val title: TextView = findViewById(R.id.title)
         val taps: TextView = findViewById(R.id.taps)
@@ -57,7 +56,7 @@ class MainActivity : AppCompatActivity() {
         val viewModel = ViewModelProviders
                 .of(this, MainViewModel.FACTORY(repository))
                 .get(MainViewModel::class.java)
-
+        binding.viewModel = viewModel
         // When rootLayout is clicked call onMainViewClicked in ViewModel
         rootLayout.setOnClickListener {
             viewModel.onMainViewClicked()
@@ -70,9 +69,9 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        viewModel.taps.observe(this) { value ->
-            taps.text = value
-        }
+//        viewModel.taps.observe(this) { value ->
+//            taps.text = value
+//        }
 
         // show the spinner when [MainViewModel.spinner] is true
         viewModel.spinner.observe(this) { value ->

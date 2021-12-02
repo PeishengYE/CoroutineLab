@@ -56,6 +56,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="45dp"
             android:textSize="18sp"
+            android:text="@{viewModel.taps}"
             app:layout_constraintEnd_toEndOf="@+id/title"
             app:layout_constraintStart_toStartOf="@+id/title"
             app:layout_constraintTop_toBottomOf="@+id/title" />
