@@ -58,10 +58,13 @@ class MainActivity : AppCompatActivity() {
                 .get(MainViewModel::class.java)
         binding.viewModel = viewModel
         // When rootLayout is clicked call onMainViewClicked in ViewModel
-        rootLayout.setOnClickListener {
+//        rootLayout.setOnClickListener {
+//            viewModel.onMainViewClicked()
+//        }
+
+        binding.button.setOnClickListener{
             viewModel.onMainViewClicked()
         }
-
         // update the title when the [MainViewModel.title] changes
         viewModel.title.observe(this) { value ->
             value?.let {

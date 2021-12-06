@@ -35,9 +35,14 @@ import kotlinx.coroutines.launch
  * @param repository the data source this ViewModel will fetch results from.
  */
 
-const val URL_SCREENSHOT = "http://172.16.18.211:8080/image/"
+//const val URL_SCREENSHOT = "http://172.16.18.211:8080/image/"
+//const val URL_BLUE = "http://172.16.18.211:8080/blue/"
+//const val URL_RED = "http://172.16.18.211:8080/red/"
+
+const val URL_SCREENSHOT = "http://192.168.106.211:8080/image/"
 const val URL_BLUE = "http://172.16.18.211:8080/blue/"
 const val URL_RED = "http://172.16.18.211:8080/red/"
+
 class MainViewModel(private val repository: TitleRepository) : ViewModel() {
 
     companion object {
@@ -131,7 +136,7 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
         viewModelScope.launch {
             tapCount++
             // suspend this coroutine for one second
-            delay(1_000)
+            delay(100)
             // resume in the main dispatcher
             // _snackbar.value can be called directly from main thread
             _taps.postValue("$tapCount taps")
