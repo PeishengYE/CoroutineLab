@@ -22,8 +22,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.android.kotlincoroutines.util.singleArgViewModelFactory
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.PrintWriter
@@ -48,7 +47,7 @@ const val ZIYI_COMPUTER = "192.168.106.221"
 
 
 class MainViewModel(private val repository: TitleRepository) : ViewModel() {
-
+     val TAG = "MainViewModel"
     companion object {
         /**
          * Factory for creating [MainViewModel]
@@ -139,18 +138,31 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
         // launch a coroutine in viewModelScope
         viewModelScope.launch {
             var URL_SCREENSHOT = ""
+            val networkScope = CoroutineScope(Dispatchers.Default)
+            var res = false
             while (true) {
+                delay(1000)
+                networkScope.launch {
+                    var deferred: Deferred<Boolean> = async {
+                        isComputerAlive(ZIYI_COMPUTER)
+                    }
+                    res= deferred.await()
+                }
 
-                if (isComputerAlive(ZIYI_COMPUTER)) {
+                if (res) {
+                    Log.v(TAG, "Ziyi computer is alive!")
                     URL_SCREENSHOT = "http://${ZIYI_COMPUTER}:8080//image/"
                     _imageUrl.value = URL_SCREENSHOT
                     delay(5000)
+                }else{
+                    Log.v(TAG, "Ziyi computer is not alive!")
                 }
-                if (isComputerAlive(ZIHAN_COMPUTER)) {
-                    URL_SCREENSHOT = "http://${ZIHAN_COMPUTER}:8080//image/"
-                    _imageUrl.value = URL_SCREENSHOT
-                    delay(5000)
-                }
+//                isAlive = isComputerAlive(ZIHAN_COMPUTER)
+//                if (isAlive.await()) {
+//                    URL_SCREENSHOT = "http://${ZIHAN_COMPUTER}:8080//image/"
+//                    _imageUrl.value = URL_SCREENSHOT
+//                    delay(5000)
+//                }
 
 
             }
@@ -159,16 +171,21 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
 
     }
 
-    fun isComputerAlive(ip: String):Boolean {
+
+
+    private  suspend  fun isComputerAlive(ip: String):Boolean {
+
         var res = false
+
+
        try {
            val client = Socket(ip, 8080)
            val output = PrintWriter(client.getOutputStream(), true)
            val input = BufferedReader(InputStreamReader(client.inputStream))
 
-           println("Client sending [Hello]")
+           println("Client ${ip} sending [Hello]")
            output.println("Hello")
-           println("Client receiving [${input.readLine()}]")
+           println("Client ${ip} receiving [${input.readLine()}]")
            client.close()
            res = true
        }catch(cause: Throwable) {
@@ -177,6 +194,7 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
            Log.v(TAG, " ${ip}:8080 is not available:  " + cause)
            res = false
        }
+
         return res
     }
 
