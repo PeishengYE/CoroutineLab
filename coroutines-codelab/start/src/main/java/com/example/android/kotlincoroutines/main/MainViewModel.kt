@@ -21,10 +21,13 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.android.kotlincoroutines.util.BACKGROUND
 import com.example.android.kotlincoroutines.util.singleArgViewModelFactory
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.io.PrintWriter
+import java.net.Socket
 
 /**
  * MainViewModel designed to store and manage UI-related data in a lifecycle conscious way. This
@@ -39,9 +42,10 @@ import kotlinx.coroutines.launch
 //const val URL_BLUE = "http://172.16.18.211:8080/blue/"
 //const val URL_RED = "http://172.16.18.211:8080/red/"
 
-const val URL_SCREENSHOT = "http://192.168.106.211:8080/image/"
-const val URL_BLUE = "http://172.16.18.211:8080/blue/"
-const val URL_RED = "http://172.16.18.211:8080/red/"
+const val ZIHAN_COMPUTER = "192.168.106.131"
+const val ZIYI_COMPUTER = "192.168.106.221"
+//const val URL_SCREENSHOT = "http://${ZIYI_COMPUTER}:8080//image/"
+
 
 class MainViewModel(private val repository: TitleRepository) : ViewModel() {
 
@@ -121,36 +125,63 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
      * a snackbar.
      */
     fun onMainViewClicked() {
-        refreshTitle()
-        updateTaps()
+//        refreshTitle()
+        updateScreenShot()
     }
 
     /**
      * Wait one second then update the tap count.
      */
-    private fun updateTaps() {
+    private fun updateScreenShot() {
 
 
 
         // launch a coroutine in viewModelScope
         viewModelScope.launch {
-            tapCount++
-            // suspend this coroutine for one second
-            delay(100)
-            // resume in the main dispatcher
-            // _snackbar.value can be called directly from main thread
-            _taps.postValue("$tapCount taps")
-            when (tapCount){
-                0-> _imageUrl.postValue(URL_RED)
-                1-> _imageUrl.postValue(URL_BLUE)
-                2-> _imageUrl.postValue(URL_SCREENSHOT)
-            }
-            if(tapCount > 3 ){
+            var URL_SCREENSHOT = ""
+            while (true) {
 
-                tapCount = 0
+                if (isComputerAlive(ZIYI_COMPUTER)) {
+                    URL_SCREENSHOT = "http://${ZIYI_COMPUTER}:8080//image/"
+                    _imageUrl.value = URL_SCREENSHOT
+                    delay(5000)
+                }
+                if (isComputerAlive(ZIHAN_COMPUTER)) {
+                    URL_SCREENSHOT = "http://${ZIHAN_COMPUTER}:8080//image/"
+                    _imageUrl.value = URL_SCREENSHOT
+                    delay(5000)
+                }
+
 
             }
         }
+
+
+    }
+
+    fun isComputerAlive(ip: String):Boolean {
+        var res = false
+       try {
+           val client = Socket(ip, 8080)
+           val output = PrintWriter(client.getOutputStream(), true)
+           val input = BufferedReader(InputStreamReader(client.inputStream))
+
+           println("Client sending [Hello]")
+           output.println("Hello")
+           println("Client receiving [${input.readLine()}]")
+           client.close()
+           res = true
+       }catch(cause: Throwable) {
+           // If anything throws an exception, inform the caller
+
+           Log.v(TAG, " ${ip}:8080 is not available:  " + cause)
+           res = false
+       }
+        return res
+    }
+
+    init {
+        updateScreenShot()
     }
 
     /**

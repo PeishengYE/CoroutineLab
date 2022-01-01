@@ -62,9 +62,9 @@ class MainActivity : AppCompatActivity() {
 //            viewModel.onMainViewClicked()
 //        }
 
-        binding.button.setOnClickListener{
-            viewModel.onMainViewClicked()
-        }
+//        binding.button.setOnClickListener{
+//            viewModel.onMainViewClicked()
+//        }
         // update the title when the [MainViewModel.title] changes
         viewModel.title.observe(this) { value ->
             value?.let {
