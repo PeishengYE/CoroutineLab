@@ -17,4 +17,5 @@
 <resources>
     <string name="app_name">Kotlin Coroutines</string>
     <string name="click_to_start">Click to start</string>
+    <string name="computer_online">Computer online</string>
 </resources>

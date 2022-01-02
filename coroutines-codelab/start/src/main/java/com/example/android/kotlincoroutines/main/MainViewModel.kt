@@ -41,7 +41,7 @@ import java.net.Socket
 //const val URL_BLUE = "http://172.16.18.211:8080/blue/"
 //const val URL_RED = "http://172.16.18.211:8080/red/"
 
-const val ZIHAN_COMPUTER = "192.168.106.131"
+const val ZIHAN_COMPUTER = "192.168.106.231"
 const val ZIYI_COMPUTER = "192.168.106.221"
 //const val URL_SCREENSHOT = "http://${ZIYI_COMPUTER}:8080//image/"
 
@@ -115,7 +115,13 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
     val imageUrl: LiveData<String>
         get() = _imageUrl
 
+    private val _titleInfo = MutableLiveData<String>()
 
+    /**
+     * Public view of tap live data.
+     */
+    val titleInfo: LiveData<String>
+        get() = _titleInfo
 
     /**
      * Respond to onClick events by refreshing the title.
@@ -139,31 +145,47 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
         viewModelScope.launch {
             var URL_SCREENSHOT = ""
             val networkScope = CoroutineScope(Dispatchers.Default)
-            var res = false
+            var resZihan = false
+            var resZiyi = false
             while (true) {
-                delay(1000)
+                delay(5000)
                 networkScope.launch {
                     var deferred: Deferred<Boolean> = async {
                         isComputerAlive(ZIYI_COMPUTER)
                     }
-                    res= deferred.await()
+                    resZiyi= deferred.await()
                 }
 
-                if (res) {
+
+                if (resZiyi) {
                     Log.v(TAG, "Ziyi computer is alive!")
                     URL_SCREENSHOT = "http://${ZIYI_COMPUTER}:8080//image/"
                     _imageUrl.value = URL_SCREENSHOT
+                    _titleInfo.value = "Ziyi computer ${ZIYI_COMPUTER} online "
                     delay(5000)
                 }else{
                     Log.v(TAG, "Ziyi computer is not alive!")
+                    _titleInfo.value = "Ziyi computer ${ZIYI_COMPUTER} offline "
                 }
-//                isAlive = isComputerAlive(ZIHAN_COMPUTER)
-//                if (isAlive.await()) {
-//                    URL_SCREENSHOT = "http://${ZIHAN_COMPUTER}:8080//image/"
-//                    _imageUrl.value = URL_SCREENSHOT
-//                    delay(5000)
-//                }
 
+                delay(5000)
+                networkScope.launch {
+                    var deferred: Deferred<Boolean> = async {
+                        isComputerAlive(ZIHAN_COMPUTER)
+                    }
+                    resZihan= deferred.await()
+                }
+
+                if (resZihan) {
+                    Log.v(TAG, "Zihan computer is alive!")
+                    URL_SCREENSHOT = "http://${ZIHAN_COMPUTER}:8080//image/"
+                    _imageUrl.value = URL_SCREENSHOT
+                    _titleInfo.value = "Zihan computer ${ZIHAN_COMPUTER} online "
+                    delay(5000)
+                }else{
+                    Log.v(TAG, "Zihan computer is not alive!")
+                    _titleInfo.value = "Zihan computer ${ZIHAN_COMPUTER} offline "
+                }
 
             }
         }

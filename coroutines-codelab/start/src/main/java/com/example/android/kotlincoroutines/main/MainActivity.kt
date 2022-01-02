@@ -47,8 +47,7 @@ class MainActivity : AppCompatActivity() {
         binding.lifecycleOwner = this
         val rootLayout: ConstraintLayout = findViewById(R.id.rootLayout)
         val title: TextView = findViewById(R.id.title)
-        val taps: TextView = findViewById(R.id.taps)
-        val spinner: ProgressBar = findViewById(R.id.spinner)
+
 
         // Get MainViewModel by passing a database to the factory
         val database = getDatabase(this)
@@ -66,7 +65,7 @@ class MainActivity : AppCompatActivity() {
 //            viewModel.onMainViewClicked()
 //        }
         // update the title when the [MainViewModel.title] changes
-        viewModel.title.observe(this) { value ->
+        viewModel.titleInfo.observe(this) { value ->
             value?.let {
                 title.text = it
             }
@@ -77,11 +76,11 @@ class MainActivity : AppCompatActivity() {
 //        }
 
         // show the spinner when [MainViewModel.spinner] is true
-        viewModel.spinner.observe(this) { value ->
-            value.let { show ->
-                spinner.visibility = if (show) View.VISIBLE else View.GONE
-            }
-        }
+//        viewModel.spinner.observe(this) { value ->
+//            value.let { show ->
+//                spinner.visibility = if (show) View.VISIBLE else View.GONE
+//            }
+//        }
 
         // Show a snackbar whenever the [ViewModel.snackbar] is updated a non-null value
         viewModel.snackbar.observe(this) { text ->
