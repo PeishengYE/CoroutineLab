@@ -149,13 +149,14 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
             var resZiyi = false
             while (true) {
                 delay(5000)
+                /*-> CAUTION, not blocked to get the result */
                 networkScope.launch {
                     var deferred: Deferred<Boolean> = async {
                         isComputerAlive(ZIYI_COMPUTER)
                     }
                     resZiyi= deferred.await()
                 }
-
+                /*<- CAUTION, not blocked to get the result */
 
                 if (resZiyi) {
                     Log.v(TAG, "Ziyi computer is alive!")
