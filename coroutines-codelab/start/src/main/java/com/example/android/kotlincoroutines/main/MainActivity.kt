@@ -17,12 +17,15 @@
 package com.example.android.kotlincoroutines.main
 
 import android.os.Bundle
+import android.os.PowerManager
+import android.os.PowerManager.WakeLock
 import android.view.View
-import android.widget.ProgressBar
+import android.view.WindowManager
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModelProviders
 import androidx.lifecycle.observe
 import com.example.android.kotlincoroutines.R
@@ -71,6 +74,29 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+
+        viewModel.connectStatus.observe(this) { value ->
+            value?.let {
+                if (it.contains("Ziyi")){
+                    if (it.contains("disconnected")){
+                        binding.kid1Status.setImageResource(R.drawable.ic_connection_error)
+
+                    }else{
+                        binding.kid1Status.setImageResource(R.drawable.round_cast_connected_20)
+                    }
+                }
+                if (it.contains("Zihan")){
+                    if (it.contains("disconnected")){
+
+                        binding.kid2Status.setImageResource(R.drawable.ic_connection_error)
+                    }else{
+                        binding.kid2Status.setImageResource(R.drawable.round_cast_connected_20)
+                    }
+                }
+            }
+        }
+
+
 //        viewModel.taps.observe(this) { value ->
 //            taps.text = value
 //        }
@@ -89,5 +115,28 @@ class MainActivity : AppCompatActivity() {
                 viewModel.onSnackbarShown()
             }
         }
+
+
+        viewModel.waitingStatus.observe(this) { text ->
+            text?.let {
+                if (text.length > 3){
+                    binding.waitingStatus.setText(text)
+                }
+            }
+        }
+
+        viewModel.kidsComputerOnline.observe(this) { isOnLine ->
+            isOnLine?.let {
+                if (isOnLine) {
+                    binding.scanning.visibility = View.GONE
+                    binding.waitingStatus.visibility = View.GONE
+//                    Snackbar.make(rootLayout, "finish scanning the local network", Snackbar.LENGTH_SHORT).show()
+//                    viewModel.updateScreenShot()
+                }
+            }
+        }
+
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
     }
 }

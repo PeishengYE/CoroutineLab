@@ -21,12 +21,14 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.android.kotlincoroutines.util.ScanIpAddress
 import com.example.android.kotlincoroutines.util.singleArgViewModelFactory
 import kotlinx.coroutines.*
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.PrintWriter
-import java.net.Socket
+import java.net.*
+
 
 /**
  * MainViewModel designed to store and manage UI-related data in a lifecycle conscious way. This
@@ -41,8 +43,11 @@ import java.net.Socket
 //const val URL_BLUE = "http://172.16.18.211:8080/blue/"
 //const val URL_RED = "http://172.16.18.211:8080/red/"
 
-const val ZIHAN_COMPUTER = "192.168.106.231"
-const val ZIYI_COMPUTER = "192.168.106.221"
+const val ZIYI_COMPUTER_MAC = "00:10:f3:6b:2e:da"
+const val ZIHAN_COMPUTER_MAC_1 = "34:e6:d7:17:b7:3a"
+const val ZIHAN_COMPUTER_MAC_2 = "00:13:3b:99:31:af"
+var zihan_ip = "null"
+var ziyi_ip = "null"
 //const val URL_SCREENSHOT = "http://${ZIYI_COMPUTER}:8080//image/"
 
 
@@ -56,7 +61,7 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
          */
         val FACTORY = singleArgViewModelFactory(::MainViewModel)
     }
-
+    private var macIPTable = mutableMapOf<String, String>()
     /**
      * Request a snackbar to display a string.
      *
@@ -94,15 +99,15 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
     /**
      * LiveData with formatted tap count.
      */
-    private val _taps = MutableLiveData<String>("$tapCount taps")
+    private val _kidsComputerOnline = MutableLiveData<Boolean>(false)
 
-    /**
-     * Public view of tap live data.
-     */
-    val taps: LiveData<String>
-        get() = _taps
+    val kidsComputerOnline: LiveData<Boolean>
+        get() = _kidsComputerOnline
 
+    private val _waitingStatus = MutableLiveData<String>("")
 
+    val waitingStatus: LiveData<String>
+        get() = _waitingStatus
 
     /**
      * LiveData with formatted tap count.
@@ -123,6 +128,16 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
     val titleInfo: LiveData<String>
         get() = _titleInfo
 
+
+    private val _connectStatus = MutableLiveData<String>()
+
+    /**
+     * Public view of tap live data.
+     */
+    val connectStatus: LiveData<String>
+        get() = _connectStatus
+
+
     /**
      * Respond to onClick events by refreshing the title.
      *
@@ -134,10 +149,81 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
         updateScreenShot()
     }
 
+    private fun isKidsComputerOnLine(){
+        viewModelScope.launch {
+            while (!ScanIpAddress.isDone) {
+                delay(1000)
+            }
+
+             macIPTable.forEach{
+                   Log.v(TAG, "${it.key} with IP: ${it.value} ")
+             }
+
+            var zihan_ip_tmp = macIPTable[ZIHAN_COMPUTER_MAC_1]
+            if (zihan_ip_tmp != null){
+                zihan_ip = zihan_ip_tmp
+                Log.v(TAG, "Zihan IP: ${zihan_ip}")
+            }
+
+             zihan_ip_tmp = macIPTable[ZIHAN_COMPUTER_MAC_2]
+            if (zihan_ip_tmp != null){
+                zihan_ip = zihan_ip_tmp
+                Log.v(TAG, "Zihan IP: ${zihan_ip}")
+            }
+
+            val ziyi_ip_tmp = macIPTable[ZIYI_COMPUTER_MAC]
+            if (ziyi_ip_tmp != null){
+                ziyi_ip = ziyi_ip_tmp
+                Log.v(TAG, "Ziyi IP: ${ziyi_ip}")
+            }
+
+            if ((ziyi_ip.length > 10) || (zihan_ip.length > 10)){
+
+                _waitingStatus.value = "Connecting ..."
+                updateScreenShot()
+
+            }
+
+
+
+
+        }
+
+    }
+
+        fun sendGetRequest(userName:String, password:String) {
+
+            var reqParam = URLEncoder.encode("username", "UTF-8") + "=" + URLEncoder.encode(userName, "UTF-8")
+            reqParam += "&" + URLEncoder.encode("password", "UTF-8") + "=" + URLEncoder.encode(password, "UTF-8")
+
+            val mURL = URL("<Yout API Link>?"+reqParam)
+
+            with(mURL.openConnection() as HttpURLConnection) {
+                // optional default is GET
+                requestMethod = "GET"
+
+                println("URL : $url")
+                println("Response Code : $responseCode")
+
+                BufferedReader(InputStreamReader(inputStream)).use {
+                    val response = StringBuffer()
+
+                    var inputLine = it.readLine()
+                    while (inputLine != null) {
+                        response.append(inputLine)
+                        inputLine = it.readLine()
+                    }
+                    it.close()
+                    println("Response : $response")
+                }
+            }
+        }
+
+
     /**
      * Wait one second then update the tap count.
      */
-    private fun updateScreenShot() {
+     fun updateScreenShot() {
 
 
 
@@ -152,7 +238,7 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
                 /*-> CAUTION, not blocked to get the result */
                 networkScope.launch {
                     var deferred: Deferred<Boolean> = async {
-                        isComputerAlive(ZIYI_COMPUTER)
+                        isComputerAlive(ziyi_ip)
                     }
                     resZiyi= deferred.await()
                 }
@@ -160,32 +246,36 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
 
                 if (resZiyi) {
                     Log.v(TAG, "Ziyi computer is alive!")
-                    URL_SCREENSHOT = "http://${ZIYI_COMPUTER}:8080//image/"
+                    URL_SCREENSHOT = "http://${ziyi_ip}:8080//image/"
+                    _kidsComputerOnline.value = true
                     _imageUrl.value = URL_SCREENSHOT
-                    _titleInfo.value = "Ziyi computer ${ZIYI_COMPUTER} online "
+                    _titleInfo.value = "ZIYI: ${ziyi_ip} "
+                    _connectStatus.value = "Ziyi connected"
                     delay(5000)
                 }else{
-                    Log.v(TAG, "Ziyi computer is not alive!")
-                    _titleInfo.value = "Ziyi computer ${ZIYI_COMPUTER} offline "
+                    Log.v(TAG, "Ziyi computer is not reachable!")
+                    _connectStatus.value = "Ziyi disconnected"
                 }
 
                 delay(5000)
                 networkScope.launch {
                     var deferred: Deferred<Boolean> = async {
-                        isComputerAlive(ZIHAN_COMPUTER)
+                        isComputerAlive(zihan_ip)
                     }
                     resZihan= deferred.await()
                 }
 
                 if (resZihan) {
                     Log.v(TAG, "Zihan computer is alive!")
-                    URL_SCREENSHOT = "http://${ZIHAN_COMPUTER}:8080//image/"
+                    URL_SCREENSHOT = "http://${zihan_ip}:8080//image/"
+                    _kidsComputerOnline.value = true
                     _imageUrl.value = URL_SCREENSHOT
-                    _titleInfo.value = "Zihan computer ${ZIHAN_COMPUTER} online "
+                    _titleInfo.value = "ZIHAN: ${zihan_ip}"
+                    _connectStatus.value = "Zihan connected"
                     delay(5000)
                 }else{
-                    Log.v(TAG, "Zihan computer is not alive!")
-                    _titleInfo.value = "Zihan computer ${ZIHAN_COMPUTER} offline "
+                    Log.v(TAG, "Zihan computer is not reachable!")
+                    _connectStatus.value = "Zihan disconnected"
                 }
 
             }
@@ -221,8 +311,21 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
         return res
     }
 
+    private  fun getMacIptable(){
+        val networkScope = CoroutineScope(Dispatchers.Default)
+        networkScope.launch {
+            macIPTable = ScanIpAddress.getMacIPTable()
+        }
+    }
+
     init {
-        updateScreenShot()
+//        updateScreenShot()
+        _kidsComputerOnline.value = false
+        zihan_ip = "null"
+        ziyi_ip = "null"
+
+        getMacIptable()
+        isKidsComputerOnLine()
     }
 
     /**
