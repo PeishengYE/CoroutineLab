@@ -20,4 +20,5 @@
     <string name="computer_online">Computer online</string>
     <string name="waiting">Waiting</string>
     <string name="scanning_mac">scanning All IP Mac ...</string>
+    <string name="scan_menu">rescan</string>
 </resources>

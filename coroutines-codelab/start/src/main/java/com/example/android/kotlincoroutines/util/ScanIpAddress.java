@@ -3,6 +3,7 @@ package com.example.android.kotlincoroutines.util;
 import android.util.Log;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -13,15 +14,16 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.net.*;
 
 public class ScanIpAddress {
 
     public static Boolean isDone = false;
 
 
-    public static Map<String, String> getMacIPTable(){
+    public static Map<String, String> getMacIPTable() {
         isDone = false;
-        ArrayList<InetAddress> ret = new ArrayList<InetAddress>();
+
         Map<String, String> macIPTable = new HashMap<>();
 
         int LoopCurrentIP = 0;
@@ -31,33 +33,61 @@ public class ScanIpAddress {
         InetAddress currentPingAddr;
 
         for (int i = 0; i <= 255; i++) {
-                try {
-                    // build the next IP address
-                    currentPingAddr = InetAddress.getByName(myIPArray[0] + "." +
-                            myIPArray[1] + "." +
-                            myIPArray[2] + "." +
-                            Integer.toString(LoopCurrentIP));
-                    String cureentIP = currentPingAddr.toString();
-                    // 50ms Timeout for the "ping"
-                    if (currentPingAddr.isReachable(50)) {
+            try {
+                // build the next IP address
+                currentPingAddr = InetAddress.getByName(myIPArray[0] + "." +
+                        myIPArray[1] + "." +
+                        myIPArray[2] + "." +
+                        Integer.toString(LoopCurrentIP));
+                String cureentIP = currentPingAddr.toString().substring(1);
+                // 50ms Timeout for the "ping"
+                if (currentPingAddr.isReachable(50)) {
 
-                        ret.add(currentPingAddr);
-                        cureentIP = currentPingAddr.toString().substring(1);
-                        Log.d("scanIpAddress: ",cureentIP + " is alive");
-                        String mac = getMacFromArpCache(cureentIP);
-                        Log.d("scanIpAddress: ",cureentIP + " with MAC: " + mac);
-                        if ( mac != null )
-                             macIPTable.put(mac,cureentIP);
-                    }
-                } catch (UnknownHostException ex) {
-                } catch (IOException ex) {
+
+
+                    String mac = getMacFromArpCache(cureentIP);
+                    Log.d("scanIpAddress: ", cureentIP + " with MAC: " + mac);
+                    if (mac != null)
+                        macIPTable.put(mac, cureentIP);
+
+
+                }else if (retryConnection(cureentIP, 22)){
+
+                    String mac = getMacFromArpCache(cureentIP);
+                    Log.d("scanIpAddress: ", cureentIP + " with MAC: " + mac);
+                    if (mac != null)
+                        macIPTable.put(mac, cureentIP);
                 }
+
+            } catch (UnknownHostException ex) {
+            } catch (IOException ex) {
+            }
             LoopCurrentIP++;
         }
         isDone = true;
         return macIPTable;
-  }
+    }
 
+    private static Boolean retryConnection( String IP,  int port) {
+        Boolean res = false;
+        Log.d("scanIpAddress: ", "retryConnection: " + IP);
+        try {
+            Socket s = new Socket();
+            SocketAddress socketAddress = new InetSocketAddress(IP, port);
+            s.connect(socketAddress, 300);
+//            DataOutputStream dout = new DataOutputStream(s.getOutputStream());
+//            dout.writeUTF("Hello Server");
+//            dout.flush();
+//            dout.close();
+            s.close();
+            res = true;
+
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+
+        return  res;
+}
     public static String getMacFromArpCache(String ip) {
         if (ip == null)
             return null;

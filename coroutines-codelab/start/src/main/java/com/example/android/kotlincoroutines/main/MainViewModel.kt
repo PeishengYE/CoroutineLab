@@ -318,6 +318,12 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
         }
     }
 
+    fun restart(){
+
+        getMacIptable()
+        isKidsComputerOnLine()
+    }
+
     init {
 //        updateScreenShot()
         _kidsComputerOnline.value = false

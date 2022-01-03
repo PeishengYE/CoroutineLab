@@ -17,15 +17,15 @@
 package com.example.android.kotlincoroutines.main
 
 import android.os.Bundle
-import android.os.PowerManager
-import android.os.PowerManager.WakeLock
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.view.WindowManager
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.databinding.DataBindingUtil
-import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProviders
 import androidx.lifecycle.observe
 import com.example.android.kotlincoroutines.R
@@ -41,6 +41,7 @@ class MainActivity : AppCompatActivity() {
     /**
      * Inflate layout.activity_main and setup data binding.
      */
+    private lateinit var  viewModelLocal: MainViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -58,6 +59,7 @@ class MainActivity : AppCompatActivity() {
         val viewModel = ViewModelProviders
                 .of(this, MainViewModel.FACTORY(repository))
                 .get(MainViewModel::class.java)
+        viewModelLocal = viewModel
         binding.viewModel = viewModel
         // When rootLayout is clicked call onMainViewClicked in ViewModel
 //        rootLayout.setOnClickListener {
@@ -135,8 +137,24 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+//        setHasOptionsMenu(true)
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
     }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        getMenuInflater().inflate(R.menu.menu, menu);
+        return true;
+
+    }
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.getItemId() === R.id.menu_rescan) {
+//            showStylesDialog()
+            viewModelLocal.restart()
+        }
+        return true
+    }
+
+
 }
