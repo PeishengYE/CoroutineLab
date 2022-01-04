@@ -19,11 +19,11 @@ import java.net.*;
 public class ScanIpAddress {
 
     public static Boolean isDone = false;
-
+    public static int scanningProgress = 0;
 
     public static Map<String, String> getMacIPTable() {
         isDone = false;
-
+        scanningProgress = 0;
         Map<String, String> macIPTable = new HashMap<>();
 
         int LoopCurrentIP = 0;
@@ -33,6 +33,7 @@ public class ScanIpAddress {
         InetAddress currentPingAddr;
 
         for (int i = 0; i <= 255; i++) {
+            scanningProgress++;
             try {
                 // build the next IP address
                 currentPingAddr = InetAddress.getByName(myIPArray[0] + "." +

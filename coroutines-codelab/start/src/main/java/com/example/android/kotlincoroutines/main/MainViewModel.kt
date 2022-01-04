@@ -78,6 +78,14 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
     val snackbar: LiveData<String?>
         get() = _snackBar
 
+    private val _scanningProgress = MutableLiveData<Int>()
+
+    /**
+     * Request a snackbar to display a string.
+     */
+    val scanningProgress: LiveData<Int>
+        get() = _scanningProgress
+
     /**
      * Update title text via this LiveData
      */
@@ -153,6 +161,7 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
         viewModelScope.launch {
             while (!ScanIpAddress.isDone) {
                 delay(1000)
+                _scanningProgress.value = ScanIpAddress.scanningProgress;
             }
 
              macIPTable.forEach{
@@ -182,6 +191,8 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
                 _waitingStatus.value = "Connecting ..."
                 updateScreenShot()
 
+            }else{
+                _waitingStatus.value = "no kids computer found"
             }
 
 

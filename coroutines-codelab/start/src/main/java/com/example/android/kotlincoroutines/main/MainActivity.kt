@@ -17,6 +17,7 @@
 package com.example.android.kotlincoroutines.main
 
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -48,6 +49,7 @@ class MainActivity : AppCompatActivity() {
 
         val binding =
                 DataBindingUtil.setContentView<ActivityMainBinding>(this, R.layout.activity_main)
+        setSupportActionBar(binding.toolbar)
         binding.lifecycleOwner = this
         val rootLayout: ConstraintLayout = findViewById(R.id.rootLayout)
         val title: TextView = findViewById(R.id.title)
@@ -76,6 +78,17 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+
+        viewModel.scanningProgress.observe(this) { value ->
+//            Log.v("MainActivity", "with value : ${value}")
+            val progress = value/255.0*100
+            binding.scanningProgress.setProgress(progress.toInt())
+//            Log.v("MainActivity", "with progress : ${progress}")
+            if (progress.toInt() > 98){
+                binding.scanningProgress.visibility = View.GONE
+            }
+
+        }
 
         viewModel.connectStatus.observe(this) { value ->
             value?.let {

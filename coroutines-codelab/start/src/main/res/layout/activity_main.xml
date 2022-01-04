@@ -23,7 +23,104 @@
                             type="com.example.android.kotlincoroutines.main.MainViewModel" />
                 </data>
 
-    <ScrollView
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:background="@color/colorPrimary"
+            android:layout_height="?attr/actionBarSize">
+
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/myConstraintLayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <ImageView
+                    android:id="@+id/app_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:contentDescription="@string/app_name"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:srcCompat="@mipmap/ic_launcher" />
+
+                <ImageView
+                    android:id="@+id/kid1_status"
+                    android:layout_width="44dp"
+                    android:layout_height="30dp"
+                    android:layout_marginStart="16dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/kid2_name"
+                    app:layout_constraintHorizontal_bias="0.5"
+                    app:layout_constraintStart_toEndOf="@+id/kid1_name"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:tint="@color/primaryTextColor"
+                    app:srcCompat="@drawable/ic_connection_error" />
+
+
+                <ImageView
+                    android:id="@+id/kid2_status"
+                    android:layout_width="44dp"
+                    android:layout_height="30dp"
+
+                    android:layout_marginStart="16dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.5"
+                    app:layout_constraintStart_toEndOf="@+id/kid2_name"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:srcCompat="@drawable/ic_connection_error" />
+
+                <TextView
+                    android:id="@+id/kid2_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="32dp"
+                    android:text="Zihan"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/kid2_status"
+                    app:layout_constraintHorizontal_bias="0.5"
+                    app:layout_constraintStart_toEndOf="@+id/kid1_status"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/toolbar_title"
+                    style="@style/TextAppearance.AppCompat.Title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center_vertical"
+
+                    android:gravity="center_vertical"
+                    android:text="@string/app_name"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/app_icon"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/kid1_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:text="Ziyi"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/kid1_status"
+                    app:layout_constraintHorizontal_bias="0.5"
+                    app:layout_constraintHorizontal_chainStyle="packed"
+                    app:layout_constraintStart_toEndOf="@+id/toolbar_title"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </androidx.appcompat.widget.Toolbar>
+
+        <ScrollView
 
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -90,30 +187,6 @@
                 tools:srcCompat="@tools:sample/backgrounds/scenic" />
 
 
-            <ImageView
-                android:id="@+id/kid1_status"
-                android:layout_width="44dp"
-                android:layout_height="30dp"
-                android:layout_marginBottom="24dp"
-                android:layout_marginStart="16dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/kid2_name"
-                app:layout_constraintHorizontal_bias="0.5"
-                app:layout_constraintStart_toEndOf="@+id/kid1_name"
-                app:srcCompat="@drawable/ic_connection_error" />
-
-            <ImageView
-                android:id="@+id/kid2_status"
-                android:layout_width="44dp"
-                android:layout_height="30dp"
-
-                android:layout_marginBottom="24dp"
-                android:layout_marginStart="16dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.5"
-                app:layout_constraintStart_toEndOf="@+id/kid2_name"
-                app:srcCompat="@drawable/ic_connection_error" />
 
             <ProgressBar
                 android:id="@+id/scanning"
@@ -187,30 +260,6 @@
                 app:layout_constraintStart_toStartOf="@+id/start_grid"
                 app:layout_constraintTop_toBottomOf="@+id/imageView" />
 
-            <TextView
-                android:id="@+id/kid1_name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-
-                android:text="Ziyi"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/kid1_status"
-                app:layout_constraintHorizontal_bias="0.5"
-                app:layout_constraintHorizontal_chainStyle="packed"
-                app:layout_constraintStart_toStartOf="parent" />
-
-            <TextView
-                android:id="@+id/kid2_name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                android:layout_marginStart="32dp"
-                android:text="Zihan"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/kid2_status"
-                app:layout_constraintHorizontal_bias="0.5"
-                app:layout_constraintStart_toEndOf="@+id/kid1_status" />
 
             <androidx.constraintlayout.widget.Guideline
                 android:id="@+id/end_grid"
@@ -236,7 +285,18 @@
                 app:layout_constraintStart_toStartOf="@+id/start_grid"
                 app:layout_constraintTop_toBottomOf="@+id/scanning" />
 
+            <ProgressBar
+                android:id="@+id/scanningProgress"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="225dp"
+                android:layout_height="21dp"
+                app:layout_constraintBottom_toTopOf="@+id/scanning"
+                app:layout_constraintEnd_toStartOf="@+id/end_grid"
+                app:layout_constraintStart_toStartOf="@+id/start_grid"
+                app:layout_constraintTop_toTopOf="parent" />
+
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
+    </LinearLayout>
 </layout>
