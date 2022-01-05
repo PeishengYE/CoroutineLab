@@ -17,16 +17,13 @@
 package com.example.android.kotlincoroutines.main
 
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.WindowManager
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.databinding.DataBindingUtil
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProviders
 import androidx.lifecycle.observe
 import com.example.android.kotlincoroutines.R
@@ -51,8 +48,8 @@ class MainActivity : AppCompatActivity() {
                 DataBindingUtil.setContentView<ActivityMainBinding>(this, R.layout.activity_main)
         setSupportActionBar(binding.toolbar)
         binding.lifecycleOwner = this
-        val rootLayout: ConstraintLayout = findViewById(R.id.rootLayout)
-        val title: TextView = findViewById(R.id.title)
+        val rootLayout: ConstraintLayout = binding.rootLayout
+
 
 
         // Get MainViewModel by passing a database to the factory
@@ -67,16 +64,16 @@ class MainActivity : AppCompatActivity() {
 //        rootLayout.setOnClickListener {
 //            viewModel.onMainViewClicked()
 //        }
-
-//        binding.button.setOnClickListener{
-//            viewModel.onMainViewClicked()
-//        }
-        // update the title when the [MainViewModel.title] changes
-        viewModel.titleInfo.observe(this) { value ->
-            value?.let {
-                title.text = it
-            }
+        binding.reconnect.setEnabled(false)
+        binding.reconnect.setOnClickListener{
+            viewModel.reconnect()
         }
+//        // update the title when the [MainViewModel.title] changes
+//        viewModel.titleInfo.observe(this) { value ->
+//            value?.let {
+//                title.text = it
+//            }
+//        }
 
 
         viewModel.scanningProgress.observe(this) { value ->
@@ -86,6 +83,7 @@ class MainActivity : AppCompatActivity() {
 //            Log.v("MainActivity", "with progress : ${progress}")
             if (progress.toInt() > 98){
                 binding.scanningProgress.visibility = View.GONE
+                binding.reconnect.setEnabled(true)
             }
 
         }
@@ -164,7 +162,7 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.getItemId() === R.id.menu_rescan) {
 //            showStylesDialog()
-            viewModelLocal.restart()
+            viewModelLocal.rescanIPMacTable()
         }
         return true
     }

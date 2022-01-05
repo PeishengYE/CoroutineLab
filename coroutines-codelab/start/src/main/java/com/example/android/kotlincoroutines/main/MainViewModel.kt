@@ -145,7 +145,9 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
     val connectStatus: LiveData<String>
         get() = _connectStatus
 
+    private var isContinueScanScreenshot = false
 
+    private var isScanScreenshotFinished = true
     /**
      * Respond to onClick events by refreshing the title.
      *
@@ -189,6 +191,9 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
             if ((ziyi_ip.length > 10) || (zihan_ip.length > 10)){
 
                 _waitingStatus.value = "Connecting ..."
+
+                isContinueScanScreenshot = true
+                isScanScreenshotFinished = false
                 updateScreenShot()
 
             }else{
@@ -244,7 +249,8 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
             val networkScope = CoroutineScope(Dispatchers.Default)
             var resZihan = false
             var resZiyi = false
-            while (true) {
+            _snackBar.postValue("Scan stared!")
+            while (isContinueScanScreenshot) {
                 delay(5000)
                 /*-> CAUTION, not blocked to get the result */
                 networkScope.launch {
@@ -290,6 +296,8 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
                 }
 
             }
+            isScanScreenshotFinished = true
+            _snackBar.postValue("Scan stopped!")
         }
 
 
@@ -329,10 +337,20 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
         }
     }
 
-    fun restart(){
+    fun rescanIPMacTable(){
 
         getMacIptable()
-        isKidsComputerOnLine()
+
+    }
+
+    fun reconnect(){
+        viewModelScope.launch {
+            isContinueScanScreenshot = false
+            while (!isScanScreenshotFinished)
+                delay(500)
+            isKidsComputerOnLine()
+        }
+
     }
 
     init {
@@ -341,6 +359,9 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
         zihan_ip = "null"
         ziyi_ip = "null"
 
+        isContinueScanScreenshot = false
+
+        isScanScreenshotFinished = true
         getMacIptable()
         isKidsComputerOnLine()
     }
