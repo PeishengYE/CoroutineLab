@@ -46,8 +46,7 @@ import java.net.*
 const val ZIYI_COMPUTER_MAC = "00:10:f3:6b:2e:da"
 const val ZIHAN_COMPUTER_MAC_1 = "34:e6:d7:17:b7:3a"
 const val ZIHAN_COMPUTER_MAC_2 = "00:13:3b:99:31:af"
-var zihan_ip = "null"
-var ziyi_ip = "null"
+
 //const val URL_SCREENSHOT = "http://${ZIYI_COMPUTER}:8080//image/"
 
 
@@ -137,7 +136,7 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
         get() = _titleInfo
 
 
-    private val _connectStatus = MutableLiveData<String>()
+    private val _connectStatus = MutableLiveData<String>("kids computer disconnected")
 
     /**
      * Public view of tap live data.
@@ -148,64 +147,87 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
     private var isContinueScanScreenshot = false
 
     private var isScanScreenshotFinished = true
-    /**
-     * Respond to onClick events by refreshing the title.
-     *
-     * The loading spinner will display until a result is returned, and errors will trigger
-     * a snackbar.
-     */
-    fun onMainViewClicked() {
-//        refreshTitle()
-        updateScreenShot()
+
+   data class  kidsComputerStatus(
+        var kidName : String,
+        var computerName: String = "Unknown",
+        var osType: String,
+        var macAddrss: String,
+        var ipAddress: String,
+        var isOnLine: Boolean
+
+    )
+
+    private var kidsComputerStatusList = mutableListOf<kidsComputerStatus>()
+    private var isCheckingPortDone = false
+    private  var isPortOpen = false
+
+    private fun initKidsComputerStatus(){
+        val zihan1 = kidsComputerStatus(
+                kidName = "ZIHAN",
+                osType = "LINUX",
+                macAddrss = ZIHAN_COMPUTER_MAC_1,
+                ipAddress = "192.168.106.231",
+                isOnLine = false
+
+        )
+
+        kidsComputerStatusList.add(zihan1)
+
+        val zihan2 = kidsComputerStatus(
+                kidName = "ZIHAN",
+                osType = "WINDOWS",
+                macAddrss = ZIHAN_COMPUTER_MAC_1,
+                ipAddress = "192.168.106.119",
+                        isOnLine = false
+        )
+        kidsComputerStatusList.add(zihan2)
+
+        val ziyi = kidsComputerStatus(
+                kidName = "ZIYI",
+                osType = "LINUX",
+                macAddrss = ZIYI_COMPUTER_MAC,
+                ipAddress = "192.168.106.221",
+                isOnLine = false
+        )
+        kidsComputerStatusList.add(ziyi)
     }
+
+
 
     private fun isKidsComputerOnLine(){
         viewModelScope.launch {
-            while (!ScanIpAddress.isDone) {
-                delay(1000)
-                _scanningProgress.value = ScanIpAddress.scanningProgress;
-            }
-
-             macIPTable.forEach{
-                   Log.v(TAG, "${it.key} with IP: ${it.value} ")
-             }
-
-            var zihan_ip_tmp = macIPTable[ZIHAN_COMPUTER_MAC_1]
-            if (zihan_ip_tmp != null){
-                zihan_ip = zihan_ip_tmp
-                Log.v(TAG, "Zihan IP: ${zihan_ip}")
-            }
-
-             zihan_ip_tmp = macIPTable[ZIHAN_COMPUTER_MAC_2]
-            if (zihan_ip_tmp != null){
-                zihan_ip = zihan_ip_tmp
-                Log.v(TAG, "Zihan IP: ${zihan_ip}")
-            }
-
-            val ziyi_ip_tmp = macIPTable[ZIYI_COMPUTER_MAC]
-            if (ziyi_ip_tmp != null){
-                ziyi_ip = ziyi_ip_tmp
-                Log.v(TAG, "Ziyi IP: ${ziyi_ip}")
-            }
-
-            if ((ziyi_ip.length > 10) || (zihan_ip.length > 10)){
-
-                _waitingStatus.value = "Connecting ..."
-
-                isContinueScanScreenshot = true
-                isScanScreenshotFinished = false
-                updateScreenShot()
-
-            }else{
-                _waitingStatus.value = "no kids computer found"
-            }
 
 
+                while (true){
+                    kidsComputerStatusList.forEach {
+
+                        isPortForScreenshotOpen(it.ipAddress)
+                        while (!isCheckingPortDone) delay(500)
+                        Log.v(TAG, "isCheckingPortDone : true")
+                        if (isPortOpen){
+                            Log.v(TAG, "isCheckingPortDone : open on ${it.ipAddress}")
+                            if (it.isOnLine == false ){
+                                _connectStatus.value = "${it.kidName} connected"
+                            }
+                            it.isOnLine = true
+                        }else{
+                            Log.v(TAG, "isCheckingPortDone : close on ${it.ipAddress}")
+                            if (it.isOnLine == true ){
+                                _connectStatus.value = "${it.kidName} disconnected"
+                            }
+                            it.isOnLine = false
+                        }
+                        delay(2000)
+                    }
+                }
 
 
         }
-
     }
+
+
+
 
         fun sendGetRequest(userName:String, password:String) {
 
@@ -236,98 +258,127 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
         }
 
 
-    /**
-     * Wait one second then update the tap count.
-     */
-     fun updateScreenShot() {
-
-
-
-        // launch a coroutine in viewModelScope
+    fun updateScreenShot(){
         viewModelScope.launch {
             var URL_SCREENSHOT = ""
-            val networkScope = CoroutineScope(Dispatchers.Default)
-            var resZihan = false
-            var resZiyi = false
-            _snackBar.postValue("Scan stared!")
             while (isContinueScanScreenshot) {
-                delay(5000)
-                /*-> CAUTION, not blocked to get the result */
-                networkScope.launch {
-                    var deferred: Deferred<Boolean> = async {
-                        isComputerAlive(ziyi_ip)
+                kidsComputerStatusList.forEach {
+                    if (it.isOnLine){
+                        Log.v(TAG, "${it.kidName} computer is alive!")
+                        URL_SCREENSHOT = "http://${it.ipAddress}:8080//image/"
+                        _kidsComputerOnline.value = true
+                        _imageUrl.value = URL_SCREENSHOT
+                        _titleInfo.value = "${it.kidName}: ${it.ipAddress} "
+
+
                     }
-                    resZiyi= deferred.await()
-                }
-                /*<- CAUTION, not blocked to get the result */
-
-                if (resZiyi) {
-                    Log.v(TAG, "Ziyi computer is alive!")
-                    URL_SCREENSHOT = "http://${ziyi_ip}:8080//image/"
-                    _kidsComputerOnline.value = true
-                    _imageUrl.value = URL_SCREENSHOT
-                    _titleInfo.value = "ZIYI: ${ziyi_ip} "
-                    _connectStatus.value = "Ziyi connected"
                     delay(5000)
-                }else{
-                    Log.v(TAG, "Ziyi computer is not reachable!")
-                    _connectStatus.value = "Ziyi disconnected"
                 }
-
-                delay(5000)
-                networkScope.launch {
-                    var deferred: Deferred<Boolean> = async {
-                        isComputerAlive(zihan_ip)
-                    }
-                    resZihan= deferred.await()
-                }
-
-                if (resZihan) {
-                    Log.v(TAG, "Zihan computer is alive!")
-                    URL_SCREENSHOT = "http://${zihan_ip}:8080//image/"
-                    _kidsComputerOnline.value = true
-                    _imageUrl.value = URL_SCREENSHOT
-                    _titleInfo.value = "ZIHAN: ${zihan_ip}"
-                    _connectStatus.value = "Zihan connected"
-                    delay(5000)
-                }else{
-                    Log.v(TAG, "Zihan computer is not reachable!")
-                    _connectStatus.value = "Zihan disconnected"
-                }
-
             }
-            isScanScreenshotFinished = true
-            _snackBar.postValue("Scan stopped!")
         }
-
-
     }
 
 
+    /**
+     * Wait one second then update the tap count.
+     */
+//     fun updateScreenShot_to_del() {
+//
+//
+//
+//        // launch a coroutine in viewModelScope
+//        viewModelScope.launch {
+//            var URL_SCREENSHOT = ""
+//            val networkScope = CoroutineScope(Dispatchers.Default)
+//            var resZihan = false
+//            var resZiyi = false
+//            _snackBar.postValue("Scan stared!")
+//            while (isContinueScanScreenshot) {
+//                delay(5000)
+//                /*-> CAUTION, not blocked to get the result */
+//                networkScope.launch {
+//                    var deferred: Deferred<Boolean> = async {
+//                        isPortForScreenshotOpen(ziyi_ip)
+//                    }
+//                    resZiyi= deferred.await()
+//                }
+//                /*<- CAUTION, not blocked to get the result */
+//
+//                if (resZiyi) {
+//                    Log.v(TAG, "Ziyi computer is alive!")
+//                    URL_SCREENSHOT = "http://${ziyi_ip}:8080//image/"
+//                    _kidsComputerOnline.value = true
+//                    _imageUrl.value = URL_SCREENSHOT
+//                    _titleInfo.value = "ZIYI: ${ziyi_ip} "
+//                    _connectStatus.value = "Ziyi connected"
+//                    delay(5000)
+//                }else{
+//                    Log.v(TAG, "Ziyi computer is not reachable!")
+//                    _connectStatus.value = "Ziyi disconnected"
+//                }
+//
+//                delay(5000)
+//                networkScope.launch {
+//                    var deferred: Deferred<Boolean> = async {
+//                        isPortForScreenshotOpen(zihan_ip)
+//                    }
+//                    resZihan= deferred.await()
+//                }
+//
+//                if (resZihan) {
+//                    Log.v(TAG, "Zihan computer is alive!")
+//                    URL_SCREENSHOT = "http://${zihan_ip}:8080//image/"
+//                    _kidsComputerOnline.value = true
+//                    _imageUrl.value = URL_SCREENSHOT
+//                    _titleInfo.value = "ZIHAN: ${zihan_ip}"
+//                    _connectStatus.value = "Zihan connected"
+//                    delay(5000)
+//                }else{
+//                    Log.v(TAG, "Zihan computer is not reachable!")
+//                    _connectStatus.value = "Zihan disconnected"
+//                }
+//
+//            }
+//            isScanScreenshotFinished = true
+//            _snackBar.postValue("Scan stopped!")
+//        }
+//
+//
+//    }
 
-    private  suspend  fun isComputerAlive(ip: String):Boolean {
-
-        var res = false
 
 
-       try {
-           val client = Socket(ip, 8080)
-           val output = PrintWriter(client.getOutputStream(), true)
-           val input = BufferedReader(InputStreamReader(client.inputStream))
+    private  suspend  fun isPortForScreenshotOpen(ip: String) {
 
-           println("Client ${ip} sending [Hello]")
-           output.println("Hello")
-           println("Client ${ip} receiving [${input.readLine()}]")
-           client.close()
-           res = true
-       }catch(cause: Throwable) {
-           // If anything throws an exception, inform the caller
 
-           Log.v(TAG, " ${ip}:8080 is not available:  " + cause)
-           res = false
-       }
+        isCheckingPortDone = false
+        val networkScope = CoroutineScope(Dispatchers.Default)
+        networkScope.launch {
+            var deferred: Deferred<Boolean> = async {
+                var res = false
+                try {
+                    val client = Socket(ip, 8080)
+                    val output = PrintWriter(client.getOutputStream(), true)
+                    val input = BufferedReader(InputStreamReader(client.inputStream))
 
-        return res
+                    println("Client ${ip} sending [Hello]")
+                    output.println("Hello")
+                    println("Client ${ip} receiving [${input.readLine()}]")
+                    client.close()
+                    res = true
+                } catch (cause: Throwable) {
+                    // If anything throws an exception, inform the caller
+
+                    Log.v(TAG, " ${ip}:8080 is not available:  " + cause)
+                    res = false
+                }
+                res
+            }
+
+            isPortOpen = deferred.await()
+            isCheckingPortDone = true
+        }
+
     }
 
     private  fun getMacIptable(){
@@ -344,26 +395,27 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
     }
 
     fun reconnect(){
-        viewModelScope.launch {
-            isContinueScanScreenshot = false
-            while (!isScanScreenshotFinished)
-                delay(500)
-            isKidsComputerOnLine()
-        }
+//        viewModelScope.launch {
+//            isContinueScanScreenshot = false
+//            while (!isScanScreenshotFinished)
+//                delay(500)
+//            isKidsComputerOnLine()
+//        }
 
     }
 
     init {
 //        updateScreenShot()
         _kidsComputerOnline.value = false
-        zihan_ip = "null"
-        ziyi_ip = "null"
 
-        isContinueScanScreenshot = false
+        initKidsComputerStatus()
+//        isContinueScanScreenshot = false
 
-        isScanScreenshotFinished = true
-        getMacIptable()
+//        isScanScreenshotFinished = true
+//        getMacIptable()
         isKidsComputerOnLine()
+        isContinueScanScreenshot = true
+        updateScreenShot()
     }
 
     /**
