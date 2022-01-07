@@ -16,13 +16,17 @@
 
 package com.example.android.kotlincoroutines.main
 
+import android.content.res.ColorStateList
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
+import androidx.core.widget.ImageViewCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProviders
 import androidx.lifecycle.observe
@@ -88,9 +92,34 @@ class MainActivity : AppCompatActivity() {
 
         }
 
+        viewModel.currentImagename.observe(this) { value ->
+            value?.let {
+                Log.v(TAG, "currentImagename: ${it}")
+                var tint = 0
+                if (it.contains("Ziyi", ignoreCase = true)) {
+//                    binding.kid1Status.setColorFilter(R.color.highlightGreen, android.graphics.PorterDuff.Mode.SRC_IN)
+//                    binding.kid2Status.setColorFilter(R.color.primaryTextColor, android.graphics.PorterDuff.Mode.SRC_IN)
+                     tint = ContextCompat.getColor(applicationContext, R.color.highlightGreen);
+                    ImageViewCompat.setImageTintList(binding.kid1Status, ColorStateList.valueOf(tint))
+
+                    tint = ContextCompat.getColor(applicationContext, R.color.primaryTextColor);
+                    ImageViewCompat.setImageTintList(binding.kid2Status, ColorStateList.valueOf(tint));
+                }else if (it.contains("Zihan", ignoreCase = true)){
+//                    binding.kid2Status.setColorFilter(R.color.highlightGreen, android.graphics.PorterDuff.Mode.SRC_IN)
+//                    binding.kid1Status.setColorFilter(R.color.primaryTextColor, android.graphics.PorterDuff.Mode.SRC_IN)
+                     tint = ContextCompat.getColor(applicationContext, R.color.primaryTextColor);
+                    ImageViewCompat.setImageTintList(binding.kid1Status, ColorStateList.valueOf(tint))
+
+                     tint = ContextCompat.getColor(applicationContext, R.color.highlightGreen);
+                    ImageViewCompat.setImageTintList(binding.kid2Status, ColorStateList.valueOf(tint));
+                }
+            }
+        }
+
         viewModel.connectStatus.observe(this) { value ->
             value?.let {
-                if (it.contains("Ziyi")){
+                Log.v(TAG, "connectStatus: ${value}")
+                if (it.contains("Ziyi", ignoreCase = true)){
                     if (it.contains("disconnected")){
                         binding.kid1Status.setImageResource(R.drawable.ic_connection_error)
 
@@ -98,7 +127,7 @@ class MainActivity : AppCompatActivity() {
                         binding.kid1Status.setImageResource(R.drawable.round_cast_connected_20)
                     }
                 }
-                if (it.contains("Zihan")){
+                if (it.contains("Zihan",ignoreCase = true)){
                     if (it.contains("disconnected")){
 
                         binding.kid2Status.setImageResource(R.drawable.ic_connection_error)
@@ -110,18 +139,7 @@ class MainActivity : AppCompatActivity() {
         }
 
 
-//        viewModel.taps.observe(this) { value ->
-//            taps.text = value
-//        }
 
-        // show the spinner when [MainViewModel.spinner] is true
-//        viewModel.spinner.observe(this) { value ->
-//            value.let { show ->
-//                spinner.visibility = if (show) View.VISIBLE else View.GONE
-//            }
-//        }
-
-        // Show a snackbar whenever the [ViewModel.snackbar] is updated a non-null value
         viewModel.snackbar.observe(this) { text ->
             text?.let {
                 Snackbar.make(rootLayout, text, Snackbar.LENGTH_SHORT).show()
@@ -138,17 +156,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        viewModel.kidsComputerOnline.observe(this) { isOnLine ->
-            isOnLine?.let {
-                if (isOnLine) {
-                    binding.scanning.visibility = View.GONE
-                    binding.waitingStatus.visibility = View.GONE
-//                    Snackbar.make(rootLayout, "finish scanning the local network", Snackbar.LENGTH_SHORT).show()
-//                    viewModel.updateScreenShot()
-                }
-            }
-        }
-//        setHasOptionsMenu(true)
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);

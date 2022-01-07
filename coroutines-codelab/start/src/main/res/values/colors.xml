@@ -24,4 +24,5 @@
     <color name="secondaryDarkColor">#004c8c</color>
     <color name="primaryTextColor">#ffffff</color>
     <color name="secondaryTextColor">#ffffff</color>
+    <color name="highlightGreen">#76ff03</color>
 </resources>

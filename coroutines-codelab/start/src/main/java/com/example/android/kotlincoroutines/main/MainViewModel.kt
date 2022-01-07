@@ -106,10 +106,7 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
     /**
      * LiveData with formatted tap count.
      */
-    private val _kidsComputerOnline = MutableLiveData<Boolean>(false)
 
-    val kidsComputerOnline: LiveData<Boolean>
-        get() = _kidsComputerOnline
 
     private val _waitingStatus = MutableLiveData<String>("")
 
@@ -127,13 +124,17 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
     val imageUrl: LiveData<String>
         get() = _imageUrl
 
-    private val _titleInfo = MutableLiveData<String>()
+    /**
+     * LiveData with formatted tap count.
+     */
+    private val _currentImagename = MutableLiveData<String>()
 
     /**
      * Public view of tap live data.
      */
-    val titleInfo: LiveData<String>
-        get() = _titleInfo
+    val currentImagename: LiveData<String>
+        get() = _currentImagename
+
 
 
     private val _connectStatus = MutableLiveData<String>("kids computer disconnected")
@@ -146,17 +147,17 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
 
     private var isContinueScanScreenshot = false
 
-    private var isScanScreenshotFinished = true
+
 
    data class  kidsComputerStatus(
-        var kidName : String,
-        var computerName: String = "Unknown",
-        var osType: String,
-        var macAddrss: String,
-        var ipAddress: String,
-        var isOnLine: Boolean
+           var kidName: String,
+           var computerName: String = "Unknown",
+           var osType: String,
+           var macAddrss: String,
+           var ipAddress: String,
+           var isOnLine: Boolean
 
-    )
+   )
 
     private var kidsComputerStatusList = mutableListOf<kidsComputerStatus>()
     private var isCheckingPortDone = false
@@ -179,7 +180,7 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
                 osType = "WINDOWS",
                 macAddrss = ZIHAN_COMPUTER_MAC_1,
                 ipAddress = "192.168.106.119",
-                        isOnLine = false
+                isOnLine = false
         )
         kidsComputerStatusList.add(zihan2)
 
@@ -229,12 +230,12 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
 
 
 
-        fun sendGetRequest(userName:String, password:String) {
+        fun sendGetRequest(userName: String, password: String) {
 
             var reqParam = URLEncoder.encode("username", "UTF-8") + "=" + URLEncoder.encode(userName, "UTF-8")
             reqParam += "&" + URLEncoder.encode("password", "UTF-8") + "=" + URLEncoder.encode(password, "UTF-8")
 
-            val mURL = URL("<Yout API Link>?"+reqParam)
+            val mURL = URL("<Yout API Link>?" + reqParam)
 
             with(mURL.openConnection() as HttpURLConnection) {
                 // optional default is GET
@@ -266,9 +267,9 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
                     if (it.isOnLine){
                         Log.v(TAG, "${it.kidName} computer is alive!")
                         URL_SCREENSHOT = "http://${it.ipAddress}:8080//image/"
-                        _kidsComputerOnline.value = true
+                        _currentImagename.value = it.kidName
                         _imageUrl.value = URL_SCREENSHOT
-                        _titleInfo.value = "${it.kidName}: ${it.ipAddress} "
+
 
 
                     }
@@ -357,7 +358,10 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
             var deferred: Deferred<Boolean> = async {
                 var res = false
                 try {
-                    val client = Socket(ip, 8080)
+//                    val client = Socket(ip, 8080)
+                    val client = Socket()
+                    val socketAddress: SocketAddress = InetSocketAddress(ip, 8080)
+                    client.connect(socketAddress, 500)
                     val output = PrintWriter(client.getOutputStream(), true)
                     val input = BufferedReader(InputStreamReader(client.inputStream))
 
@@ -405,14 +409,10 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
     }
 
     init {
-//        updateScreenShot()
-        _kidsComputerOnline.value = false
+
 
         initKidsComputerStatus()
-//        isContinueScanScreenshot = false
 
-//        isScanScreenshotFinished = true
-//        getMacIptable()
         isKidsComputerOnLine()
         isContinueScanScreenshot = true
         updateScreenShot()
