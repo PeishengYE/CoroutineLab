@@ -17,6 +17,7 @@
 package com.example.android.kotlincoroutines
 
 import android.app.Application
+import androidx.multidex.MultiDexApplication
 import androidx.work.Configuration
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy.KEEP
@@ -29,7 +30,7 @@ import java.util.concurrent.TimeUnit
 /**
  * Override application to setup background work via [WorkManager]
  */
-class KotlinCoroutinesApp : Application() {
+class KotlinCoroutinesApp : MultiDexApplication() {
     /**
      * onCreate is called before the first screen is shown to the user.
      *
