@@ -64,6 +64,9 @@ class MainActivity : AppCompatActivity() {
                 .get(MainViewModel::class.java)
         viewModelLocal = viewModel
         binding.viewModel = viewModel
+        binding.scanningProgress.visibility = View.GONE
+        binding.waitingStatus.visibility = View.GONE
+        binding.scanning.visibility = View.GONE
         // When rootLayout is clicked call onMainViewClicked in ViewModel
 //        rootLayout.setOnClickListener {
 //            viewModel.onMainViewClicked()

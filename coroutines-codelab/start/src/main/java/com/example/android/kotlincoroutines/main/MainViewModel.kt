@@ -28,6 +28,7 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.PrintWriter
 import java.net.*
+import java.util.concurrent.Executors.newSingleThreadExecutor
 
 
 /**
@@ -192,6 +193,15 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
                 isOnLine = false
         )
         kidsComputerStatusList.add(ziyi)
+
+        val ziyi_from_office = kidsComputerStatus(
+            kidName = "ZIYI",
+            osType = "LINUX",
+            macAddrss = ZIYI_COMPUTER_MAC,
+            ipAddress = "172.16.18.19",
+            isOnLine = false
+        )
+        kidsComputerStatusList.add(ziyi_from_office)
     }
 
 
@@ -204,8 +214,7 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
                     kidsComputerStatusList.forEach {
 
                         isPortForScreenshotOpen(it.ipAddress)
-                        while (!isCheckingPortDone) delay(500)
-                        Log.v(TAG, "isCheckingPortDone : true")
+
                         if (isPortOpen){
                             Log.v(TAG, "isCheckingPortDone : open on ${it.ipAddress}")
                             if (it.isOnLine == false ){
@@ -350,39 +359,32 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
 
 
     private  suspend  fun isPortForScreenshotOpen(ip: String) {
+                withContext(Dispatchers.IO){
+                    var deferred: Deferred<Boolean> = async {
+                        var res = false
+                        try {
 
+                            val client = Socket()
+                            val socketAddress: SocketAddress = InetSocketAddress(ip, 8080)
+                            client.connect(socketAddress, 500)
+                            val output = PrintWriter(client.getOutputStream(), true)
+                            val input = BufferedReader(InputStreamReader(client.inputStream))
 
-        isCheckingPortDone = false
-        val networkScope = CoroutineScope(Dispatchers.Default)
-        networkScope.launch {
-            var deferred: Deferred<Boolean> = async {
-                var res = false
-                try {
-//                    val client = Socket(ip, 8080)
-                    val client = Socket()
-                    val socketAddress: SocketAddress = InetSocketAddress(ip, 8080)
-                    client.connect(socketAddress, 500)
-                    val output = PrintWriter(client.getOutputStream(), true)
-                    val input = BufferedReader(InputStreamReader(client.inputStream))
+                            println("Client ${ip} sending [Hello]")
+                            output.println("Hello")
+                            println("Client ${ip} receiving [${input.readLine()}]")
+                            client.close()
+                            res = true
+                        } catch (cause: Throwable) {
+                            // If anything throws an exception, inform the caller
 
-                    println("Client ${ip} sending [Hello]")
-                    output.println("Hello")
-                    println("Client ${ip} receiving [${input.readLine()}]")
-                    client.close()
-                    res = true
-                } catch (cause: Throwable) {
-                    // If anything throws an exception, inform the caller
-
-                    Log.v(TAG, " ${ip}:8080 is not available:  " + cause)
-                    res = false
+                            Log.v(TAG, "  ${ip}:8080 is not available:  " + cause)
+                            res = false
+                        }
+                        res
+                    }
+                    isPortOpen = deferred.await()
                 }
-                res
-            }
-
-            isPortOpen = deferred.await()
-            isCheckingPortDone = true
-        }
-
     }
 
     private  fun getMacIptable(){
