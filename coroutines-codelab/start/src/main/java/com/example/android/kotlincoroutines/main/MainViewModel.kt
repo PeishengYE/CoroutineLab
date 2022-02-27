@@ -28,7 +28,6 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.PrintWriter
 import java.net.*
-import java.util.concurrent.Executors.newSingleThreadExecutor
 
 
 /**
@@ -128,13 +127,25 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
     /**
      * LiveData with formatted tap count.
      */
-    private val _currentImagename = MutableLiveData<String>()
+    private val _currentComputerOwner = MutableLiveData<String>()
 
     /**
      * Public view of tap live data.
      */
-    val currentImagename: LiveData<String>
-        get() = _currentImagename
+    val currentComputerOwner: LiveData<String>
+        get() = _currentComputerOwner
+
+    /**
+     * LiveData with formatted tap count.
+     */
+    private val _currentComputerName = MutableLiveData<String>()
+
+    /**
+     * Public view of tap live data.
+     */
+    val currentComputerName: LiveData<String>
+        get() = _currentComputerName
+
 
 
 
@@ -150,24 +161,27 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
 
 
 
-   data class  kidsComputerStatus(
-           var kidName: String,
-           var computerName: String = "Unknown",
-           var osType: String,
-           var macAddrss: String,
-           var ipAddress: String,
-           var isOnLine: Boolean
+   data class  HomeComputerStatus(
+       var owner: String,
+       var computerName: String = "Unknown",
+       var osType: String,
+       var macAddrss: String,
+       var ipAddress: String,
+       var isOnLine: Boolean,
+       var alive: Boolean = false,
+       var portNumber: Int = 8080
 
    )
 
-    private var kidsComputerStatusList = mutableListOf<kidsComputerStatus>()
+    private var kidsComputerStatusList = mutableListOf<HomeComputerStatus>()
     private var isCheckingPortDone = false
     private  var isPortOpen = false
 
     private fun initKidsComputerStatus(){
-        val zihan1 = kidsComputerStatus(
-                kidName = "ZIHAN",
+        val zihan1 = HomeComputerStatus(
+                owner = "ZIHAN",
                 osType = "LINUX",
+            computerName = "Zihan Linux",
                 macAddrss = ZIHAN_COMPUTER_MAC_1,
                 ipAddress = "192.168.106.231",
                 isOnLine = false
@@ -176,32 +190,59 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
 
         kidsComputerStatusList.add(zihan1)
 
-        val zihan2 = kidsComputerStatus(
-                kidName = "ZIHAN",
+        val zihan2 = HomeComputerStatus(
+                owner = "ZIHAN",
                 osType = "WINDOWS",
+                computerName = "Zihan Windows",
                 macAddrss = ZIHAN_COMPUTER_MAC_1,
                 ipAddress = "192.168.106.119",
                 isOnLine = false
         )
         kidsComputerStatusList.add(zihan2)
 
-        val ziyi = kidsComputerStatus(
-                kidName = "ZIYI",
+
+        val zihan3 = HomeComputerStatus(
+            owner = "ZIHAN",
+            osType = "WINDOWS",
+            computerName = "Zihan Windows",
+            macAddrss = ZIHAN_COMPUTER_MAC_1,
+            ipAddress = "192.168.106.115",
+            portNumber = 8088,
+            isOnLine = false
+        )
+        kidsComputerStatusList.add(zihan3)
+
+
+        val ziyi = HomeComputerStatus(
+                owner = "ZIYI",
                 osType = "LINUX",
+            computerName = "Ziyi Linux",
                 macAddrss = ZIYI_COMPUTER_MAC,
                 ipAddress = "192.168.106.221",
                 isOnLine = false
         )
         kidsComputerStatusList.add(ziyi)
 
-        val ziyi_from_office = kidsComputerStatus(
-            kidName = "ZIYI",
+        val ziyi_from_office = HomeComputerStatus(
+            owner = "ZIYI",
             osType = "LINUX",
+            computerName = "Ziyi Linux",
             macAddrss = ZIYI_COMPUTER_MAC,
             ipAddress = "172.16.18.19",
             isOnLine = false
         )
         kidsComputerStatusList.add(ziyi_from_office)
+
+        val bitMineWindows = HomeComputerStatus(
+            owner = "Peisheng",
+            osType = "Windows",
+            computerName = "BitMine",
+            macAddrss = ZIYI_COMPUTER_MAC,
+            ipAddress = "192.168.106.110",
+            portNumber = 8088,
+            isOnLine = false
+        )
+        kidsComputerStatusList.add(bitMineWindows)
     }
 
 
@@ -213,18 +254,18 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
                 while (true){
                     kidsComputerStatusList.forEach {
 
-                        isPortForScreenshotOpen(it.ipAddress)
+                        isPortForScreenshotOpenByHttp(it.ipAddress, it.portNumber)
 
                         if (isPortOpen){
                             Log.v(TAG, "isCheckingPortDone : open on ${it.ipAddress}")
                             if (it.isOnLine == false ){
-                                _connectStatus.value = "${it.kidName} connected"
+                                _connectStatus.value = "${it.owner} connected"
                             }
                             it.isOnLine = true
                         }else{
                             Log.v(TAG, "isCheckingPortDone : close on ${it.ipAddress}")
                             if (it.isOnLine == true ){
-                                _connectStatus.value = "${it.kidName} disconnected"
+                                _connectStatus.value = "${it.owner} disconnected"
                             }
                             it.isOnLine = false
                         }
@@ -239,32 +280,52 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
 
 
 
-        fun sendGetRequest(userName: String, password: String) {
+       private suspend fun isPortForScreenshotOpenByHttp(ip: String, port: Int) {
 
-            var reqParam = URLEncoder.encode("username", "UTF-8") + "=" + URLEncoder.encode(userName, "UTF-8")
-            reqParam += "&" + URLEncoder.encode("password", "UTF-8") + "=" + URLEncoder.encode(password, "UTF-8")
+            withContext(Dispatchers.IO){
+                var deferred: Deferred<Boolean> = async {
+                    var res = false
+                    var codeResponse = 0
+                    val mURL = URL("http://${ip}:${port}/getJson")
+                    try {
+                        with((mURL.openConnection() as HttpURLConnection)) {
+                            // optional default is GET
+                            this.connectTimeout = 2000
+                            this.readTimeout = 2000
+                            requestMethod = "GET"
 
-            val mURL = URL("<Yout API Link>?" + reqParam)
+                            println("URL : $url")
+                            println("Response Code : $responseCode")
+                            codeResponse = responseCode
+                            BufferedReader(InputStreamReader(inputStream)).use {
+                                val response = StringBuffer()
 
-            with(mURL.openConnection() as HttpURLConnection) {
-                // optional default is GET
-                requestMethod = "GET"
+                                var inputLine = it.readLine()
+                                while (inputLine != null) {
+                                    response.append(inputLine)
+                                    inputLine = it.readLine()
+                                }
+                                it.close()
+                                println("Response : $response")
+                                if (response.contains("Nice work!")) {
+                                    res = true
+                                }
+                            }
 
-                println("URL : $url")
-                println("Response Code : $responseCode")
+                        }
+                    }catch (cause: Throwable) {
+                        // If anything throws an exception, inform the caller
 
-                BufferedReader(InputStreamReader(inputStream)).use {
-                    val response = StringBuffer()
-
-                    var inputLine = it.readLine()
-                    while (inputLine != null) {
-                        response.append(inputLine)
-                        inputLine = it.readLine()
+                        Log.v(TAG, "  ${ip}:$port is not available:  " + cause)
+                        res = false
+                        if (codeResponse == 404 ) res = true
                     }
-                    it.close()
-                    println("Response : $response")
+                    res
                 }
+                isPortOpen = deferred.await()
             }
+
+
         }
 
 
@@ -274,9 +335,10 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
             while (isContinueScanScreenshot) {
                 kidsComputerStatusList.forEach {
                     if (it.isOnLine){
-                        Log.v(TAG, "${it.kidName} computer is alive!")
-                        URL_SCREENSHOT = "http://${it.ipAddress}:8080//image/"
-                        _currentImagename.value = it.kidName
+                        Log.v(TAG, "${it.owner} computer is alive!")
+                        URL_SCREENSHOT = "http://${it.ipAddress}:${it.portNumber}//image/"
+                        _currentComputerOwner.value = it.owner
+                        _currentComputerName.value = it.computerName
                         _imageUrl.value = URL_SCREENSHOT
 
 
@@ -358,14 +420,14 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
 
 
 
-    private  suspend  fun isPortForScreenshotOpen(ip: String) {
+    private  suspend  fun isPortForScreenshotOpen(ip: String, port: Int) {
                 withContext(Dispatchers.IO){
                     var deferred: Deferred<Boolean> = async {
                         var res = false
                         try {
 
                             val client = Socket()
-                            val socketAddress: SocketAddress = InetSocketAddress(ip, 8080)
+                            val socketAddress: SocketAddress = InetSocketAddress(ip, port)
                             client.connect(socketAddress, 500)
                             val output = PrintWriter(client.getOutputStream(), true)
                             val input = BufferedReader(InputStreamReader(client.inputStream))
@@ -378,7 +440,7 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
                         } catch (cause: Throwable) {
                             // If anything throws an exception, inform the caller
 
-                            Log.v(TAG, "  ${ip}:8080 is not available:  " + cause)
+                            Log.v(TAG, "  ${ip}:$port is not available:  " + cause)
                             res = false
                         }
                         res

@@ -95,7 +95,13 @@ class MainActivity : AppCompatActivity() {
 
         }
 
-        viewModel.currentImagename.observe(this) { value ->
+        viewModel.currentComputerName.observe(this) { value ->
+            value?.let {
+                binding.computerName.setText(value)
+            }
+        }
+
+        viewModel.currentComputerOwner.observe(this) { value ->
             value?.let {
                 Log.v(TAG, "currentImagename: ${it}")
                 var tint = 0
